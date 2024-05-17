@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'com.github.spullara.mustache.java:mustache.java:0.9.13'
+    implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
+    implementation("io.javalin:javalin:6.0.0")
+    implementation("org.slf4j:slf4j-simple:2.0.11")
+}
+
+application {
+    mainClass = "org.example.Main"
+}
+
+test {
+    useJUnitPlatform()
+}
