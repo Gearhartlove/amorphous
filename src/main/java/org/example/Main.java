@@ -42,12 +42,19 @@ public class Main {
                 })
                 .get("/menu-hud/search", ctx -> {
                     String searchLike = ctx.queryParam("searchLike");
-                    // KGF : TODO : refactor shaping data into LanguageTranslationWithMeta
-                    //var resultDBUtils.execute(DBQueries.menuHUDSearch(searchLike));
+                    System.out.println(">> searchLike: " + searchLike);
 
-                    // get the search criteria
-                    // send critera through the database
-                    // return entries
+                    var matches = DBUtils.execute(DBQueries.menuHUDSearch(searchLike))
+                            .stream()
+                            .map(languageTranslationWithMetaFromResults)
+                            .map(matchFromLanguageTronslationWithMeta)
+                            .collect(Collectors.toCollection(ArrayList::new));
+
+                    var nonMatches = new ArrayList<Match>();
+
+                    var compiledAndExecutedTemplate = mustachifyMenu(mf, matches, nonMatches);
+
+                    ctx.html(compiledAndExecutedTemplate);
                 })
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
@@ -58,25 +65,34 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    var recordsFound = matches.size();
+                    var nonMatches = new ArrayList<Match>();
 
-                    ArrayList<Match> nonMatches = new ArrayList<>(); // initialize to 0 non-matches because we select *
+                    var compiledAndExecutedTemplate = mustachifyMenu(mf, matches, nonMatches);
 
-                    HashMap<String, Object> scopes = new HashMap<>();
-                    scopes.put("title", "Menu/HUD");
-                    scopes.put("records-found", recordsFound);
-                    scopes.put("search", "");
-                    scopes.put("filter", "");
-                    scopes.put("matches", matches);
-                    scopes.put("non-matches", nonMatches);
-
-                    Writer writer = new StringWriter();
-                    var compiledTemplate = mf.compile("query.mustache");
-                    var executedTemplate = compiledTemplate.execute(writer, scopes);
-
-                    ctx.html(executedTemplate.toString());
+                    ctx.html(compiledAndExecutedTemplate);
                 })
                 .start(7070);
+    }
+
+    private static String mustachifyMenu(
+            MustacheFactory mf,
+            ArrayList<Match> matches,
+            ArrayList<Match> nonMatches
+    ) {
+        var recordsFound = matches.size();
+
+        HashMap<String, Object> scopes = new HashMap<>();
+        scopes.put("title", "Menu/HUD");
+        scopes.put("records-found", recordsFound);
+        scopes.put("search", "");
+        scopes.put("filter", "");
+        scopes.put("matches", matches);
+        scopes.put("non-matches", nonMatches);
+
+        Writer writer = new StringWriter();
+        var compiledTemplate = mf.compile("query.mustache");
+        var executedTemplate = compiledTemplate.execute(writer, scopes);
+        return executedTemplate.toString();
     }
 
     private static void initTables() {
