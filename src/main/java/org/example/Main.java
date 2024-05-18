@@ -20,9 +20,19 @@ public class Main {
                 .get("/", ctx -> {
                     System.out.println(">> Serving Index");
 
-                    try (var stream = Files.lines(Paths.get(Objects.requireNonNull(Main.class.getResource("../../menu.html")).toURI()))) {
+                    try (var stream = Files.lines(Paths.get(Objects.requireNonNull(Main.class.getResource("../../index.html")).toURI()))) {
                         String foo = stream.collect(Collectors.joining("\n"));
                         ctx.html(foo);
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .get("/menu-hud", ctx -> {
+                    System.out.println(">> Serving Menu/HUD");
+
+                    try (var stream = Files.lines(Paths.get(Objects.requireNonNull(Main.class.getResource("../../menu-hud.html")).toURI()))) {
+                        String html = stream.collect(Collectors.joining("\n"));
+                        ctx.html(html);
                     } catch (IOException | URISyntaxException e) {
                         e.printStackTrace();
                     }

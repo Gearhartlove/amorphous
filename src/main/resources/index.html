@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .clickable {
+            cursor:pointer;
+            color:blue;
+            text-underline: blue;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>Amorphous Index</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+<p hx-get="/menu-hud"
+   hx-target="#page-content"
+   class="clickable"><u>Menu/HUD</u></p>
+<div id="page-content">
+    <p>select asset type above</p>
+</div>
+</body>
+</html>
