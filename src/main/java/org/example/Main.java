@@ -53,9 +53,10 @@ public class Main {
 
                     var nonMatches = new ArrayList<Match>();
 
-                    var compiledAndExecutedTemplate = mustachifyMenu(mf, matches, nonMatches);
+                    // TODO : no code duplication
+                    var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, searchLike, nonMatches, mf);
 
-                    ctx.html(compiledAndExecutedTemplate);
+                    ctx.html(queryResultsExecutedTemplate.toString());
                 })
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
@@ -68,37 +69,36 @@ public class Main {
 
                     var nonMatches = new ArrayList<Match>();
 
-                    var compiledAndExecutedTemplate = mustachifyMenu(mf, matches, nonMatches);
+                    var searchExecutedTemplate = generateSearchTemplate(mf, matches);
+                    var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, null, nonMatches, mf);
 
-                    ctx.html(compiledAndExecutedTemplate);
+                    ctx.html(searchExecutedTemplate.toString() + queryResultsExecutedTemplate.toString());
                 })
                 .start(7070);
     }
 
-    private static String mustachifyMenu(
-            MustacheFactory mf,
-            ArrayList<Match> matches,
-            ArrayList<Match> nonMatches
-    ) {
-        var recordsFound = matches.size();
+    private static Writer generateSearchTemplate(MustacheFactory mf, ArrayList<Match> matches) {
+        Writer writer1 = new StringWriter();
+        var searchCompiledTemplate = mf.compile("search.mustache");
+        return searchCompiledTemplate.execute(writer1, Map.of());
+    }
 
+    private static Writer generateQueryResultsTemplate(ArrayList<Match> matches, String searchLike, ArrayList<Match> nonMatches, MustacheFactory mf) {
         HashMap<String, Object> scopes = new HashMap<>();
         scopes.put("title", "Menu/HUD");
-        scopes.put("records-found", recordsFound);
-        scopes.put("search", "");
+        scopes.put("records-found", matches.size());
+        scopes.put("search", searchLike);
         scopes.put("filter", "");
         scopes.put("matches", matches);
         scopes.put("non-matches", nonMatches);
 
-        Writer writer1 = new StringWriter();
-        var searchCompiledTemplate = mf.compile("search.mustache");
-        var searchExecutedTemplate = searchCompiledTemplate.execute(writer1, Map.of("records-found", recordsFound));
-
-        Writer writer2 = new StringWriter();
-        var queryResultsCompiledTemplate = mf.compile("query-results.mustache");
-        var queryResultsExecutedTemplate = queryResultsCompiledTemplate.execute(writer2, scopes);
-
-        return searchExecutedTemplate.toString() + queryResultsExecutedTemplate.toString();
+        try(Writer writer2 = new StringWriter()) {
+            var queryResultsCompiledTemplate = mf.compile("query-results.mustache");
+            return queryResultsCompiledTemplate.execute(writer2, scopes);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void initTables() {

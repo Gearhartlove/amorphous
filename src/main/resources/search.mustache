@@ -1,6 +1,10 @@
 <h1>{{title}}</h1>
 
 <p style="display: inline-block">Search/Filter:</p>
-<input type="search" style="display: inline-block">
-
-<h4>Showing {{records-found}} assets for search [{{search}}]. Filtered by [{{filter}}].</h4>
+<input type="search"
+       name="searchLike"
+       placeholder=""
+       hx-get="/menu-hud/search"
+       hx-trigger="input changed delay:500ms, search"
+       hx-target="#matches"
+       style="display: inline-block">

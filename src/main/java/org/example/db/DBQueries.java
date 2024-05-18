@@ -19,7 +19,7 @@ public class DBQueries {
                      JOIN main.project p on language_translation.project_id = p.project_id
                      JOIN main.user u on language_translation.who_updated = u.user_id
                      JOIN main.language_lookup ll on language_translation.language_id = ll.language_id
-            WHERE asset_name like('{{searchLike}}')
+            WHERE asset_name like('%{{searchLike}}%')
             GROUP BY language_translation.asset_id, language_translation.project_id;
             """.replace("{{searchLike}}", searchLike);
     }
