@@ -5,7 +5,6 @@ import com.github.mustachejava.MustacheFactory;
 import io.javalin.Javalin;
 import org.example.db.DBQueries;
 import org.example.db.DBUtils;
-import org.example.db.LanguageTranslationWithMeta;
 import org.example.query.Match;
 
 import java.io.IOException;
@@ -18,6 +17,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.example.Converters.languageTranslationWithMetaFromResults;
+import static org.example.Converters.matchFromLanguageTronslationWithMeta;
 
 public class Main {
     public static void main(String[] args) {
@@ -50,28 +52,13 @@ public class Main {
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
 
-                    var results = DBUtils.execute(DBQueries.LANGUAGE_TRANSLATIONS_WITH_META);
-                    ArrayList<Match> matches = results.stream()
-                            .map(row -> new LanguageTranslationWithMeta(
-                                    (String) row[0],
-                                    (String) row[1],
-                                    (String) row[2],
-                                    (String) row[3],
-                                    (String) row[4],
-                                    (String) row[5],
-                                    (String) row[6],
-                                    (Long) row[7]
-                            ))
-                            .map(lt -> new Match(
-                                    lt.asset_url(),
-                                    lt.asset_name(),
-                                    lt.asset_description(),
-                                    lt.updated(), // KGF : TODO figure out date time
-                                    lt.user_name()
-                            ))
+                    var matches = DBUtils.execute(DBQueries.LANGUAGE_TRANSLATIONS_WITH_META)
+                            .stream()
+                            .map(languageTranslationWithMetaFromResults)
+                            .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    var recordsFound = matches.size(); // TODO turn into query
+                    var recordsFound = matches.size();
 
                     ArrayList<Match> nonMatches = new ArrayList<>(); // initialize to 0 non-matches because we select *
 
