@@ -38,6 +38,15 @@ public class Main {
                         e.printStackTrace();
                     }
                 })
+                .get("/menu-hud/search", ctx -> {
+                    String searchLike = ctx.queryParam("searchLike");
+                    // KGF : TODO : refactor shaping data into LanguageTranslationWithMeta
+                    //var resultDBUtils.execute(DBQueries.menuHUDSearch(searchLike));
+
+                    // get the search criteria
+                    // send critera through the database
+                    // return entries
+                })
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
 
