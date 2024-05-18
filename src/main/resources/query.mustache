@@ -3,7 +3,7 @@
 <p style="display: inline-block">Search/Filter:</p>
 <input type="search" style="display: inline-block">
 
-<h4>Showing {{records-found}} for search {{search}}. Filtered by {{filter}}</h4>
+<h4>Showing {{records-found}} for search [{{search}}]. Filtered by [{{filter}}].</h4>
 
 <ul>
     {{#matches}}
@@ -12,7 +12,7 @@
                 {{title}}
             </a>
             <p>{{description}}</p>
-            <p>last updated: {{lastUpdatedTime}} by {{lastUpdatedBy}}</p>
+            <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
         </li>
     {{/matches}}
 </ul>
@@ -26,7 +26,7 @@
                 {{title}}
             </a>
             <p>{{description}}</p>
-            <p>last updated: {{lastUpdatedTime}} by {{lastUpdatedBy}}</p>
+            <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
         </li>
     {{/non-matches}}
 </ul>
