@@ -1,0 +1,27 @@
+<div id="matches">
+    <ul>
+        {{#matches}}
+            <li>
+                <a href={{href}}>
+                    {{title}}
+                </a>
+                <p>{{description}}</p>
+                <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
+            </li>
+        {{/matches}}
+    </ul>
+
+    <h4>These do not match the selected search or filter</h4>
+
+    <ul>
+        {{#non-matches}}
+            <li>
+                <a href={{href}}>
+                    {{title}}
+                </a>
+                <p>{{description}}</p>
+                <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
+            </li>
+        {{/non-matches}}
+    </ul>
+</div>

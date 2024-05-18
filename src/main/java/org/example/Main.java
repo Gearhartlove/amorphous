@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -89,10 +90,15 @@ public class Main {
         scopes.put("matches", matches);
         scopes.put("non-matches", nonMatches);
 
-        Writer writer = new StringWriter();
-        var compiledTemplate = mf.compile("query.mustache");
-        var executedTemplate = compiledTemplate.execute(writer, scopes);
-        return executedTemplate.toString();
+        Writer writer1 = new StringWriter();
+        var searchCompiledTemplate = mf.compile("search.mustache");
+        var searchExecutedTemplate = searchCompiledTemplate.execute(writer1, Map.of("records-found", recordsFound));
+
+        Writer writer2 = new StringWriter();
+        var queryResultsCompiledTemplate = mf.compile("query-results.mustache");
+        var queryResultsExecutedTemplate = queryResultsCompiledTemplate.execute(writer2, scopes);
+
+        return searchExecutedTemplate.toString() + queryResultsExecutedTemplate.toString();
     }
 
     private static void initTables() {
