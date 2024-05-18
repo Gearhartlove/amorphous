@@ -1,17 +1,29 @@
 package org.example;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
 import io.javalin.Javalin;
 import org.example.db.DBUtils;
+import org.example.query.Match;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
+        MustacheFactory mf = new DefaultMustacheFactory();
+
         initTables();
 
         System.out.println(">> Serving Server");
@@ -30,12 +42,41 @@ public class Main {
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
 
-                    try (var stream = Files.lines(Paths.get(Objects.requireNonNull(Main.class.getResource("../../menu-hud.html")).toURI()))) {
-                        String html = stream.collect(Collectors.joining("\n"));
-                        ctx.html(html);
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    // search for every record
+                    ArrayList<Match> matches = new ArrayList<>(); // TODO get my matches
+                    matches.add(
+                            new Match("href",
+                                    "title",
+                                    "description",
+                                    123.0,
+                                    "kristoff")
+                    );
+
+                    matches.add(
+                            new Match("href",
+                                    "title",
+                                    "description",
+                                    123.0,
+                                    "kristoff")
+                    );
+
+                    var recordsFound = matches.size(); // TODO turn into query
+
+                    ArrayList<Match> nonMatches = new ArrayList<>(); // initialize to 0 non-matches because we select *
+
+                    HashMap<String, Object> scopes = new HashMap<>();
+                    scopes.put("title", "Menu/HUD");
+                    scopes.put("records-found", recordsFound);
+                    scopes.put("search", "");
+                    scopes.put("filter", "");
+                    scopes.put("matches", matches);
+                    scopes.put("non-matches", nonMatches);
+
+                    Writer writer = new StringWriter();
+                    var compiledTemplate = mf.compile("query.mustache");
+                    var executedTemplate = compiledTemplate.execute(writer, scopes);
+
+                    ctx.html(executedTemplate.toString());
                 })
                 .start(7070);
     }

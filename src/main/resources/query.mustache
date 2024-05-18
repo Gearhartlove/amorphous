@@ -1,0 +1,32 @@
+<h1>{{title}}</h1>
+
+<p style="display: inline-block">Search/Filter:</p>
+<input type="search" style="display: inline-block">
+
+<h4>Showing {{records-found}} for search {{search}}. Filtered by {{filter}}</h4>
+
+<ul>
+    {{#matches}}
+        <li>
+            <a href={{href}}>
+                {{title}}
+            </a>
+            <p>{{description}}</p>
+            <p>last updated: {{lastUpdatedTime}} by {{lastUpdatedBy}}</p>
+        </li>
+    {{/matches}}
+</ul>
+
+<h4>These do not math the selected search or filter</h4>
+
+<ul>
+    {{#non-matches}}
+        <li>
+            <a href={{href}}>
+                {{title}}
+            </a>
+            <p>{{description}}</p>
+            <p>last updated: {{lastUpdatedTime}} by {{lastUpdatedBy}}</p>
+        </li>
+    {{/non-matches}}
+</ul>
