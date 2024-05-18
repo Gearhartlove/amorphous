@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import static org.example.Converters.languageTranslationWithMetaFromResults;
 import static org.example.Converters.matchFromLanguageTronslationWithMeta;
 
@@ -51,7 +50,15 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    var nonMatches = new ArrayList<Match>();
+                    var nonMatches = DBUtils.execute(
+                                    DBQueries.menuHUDReverseSearch(
+                                            matches.stream()
+                                                    .map(Match::assetId)
+                                                    .collect(Collectors.toCollection(ArrayList::new))))
+                            .stream()
+                            .map(languageTranslationWithMetaFromResults)
+                            .map(matchFromLanguageTronslationWithMeta)
+                            .collect(Collectors.toCollection(ArrayList::new));
 
                     // TODO : no code duplication
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, searchLike, nonMatches, mf);
@@ -67,7 +74,16 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    var nonMatches = new ArrayList<Match>();
+//                    var nonMatches = new ArrayList<Match>();
+                    var nonMatches = DBUtils.execute(
+                                    DBQueries.menuHUDReverseSearch(
+                                            matches.stream()
+                                                    .map(Match::assetId)
+                                                    .collect(Collectors.toCollection(ArrayList::new))))
+                            .stream()
+                            .map(languageTranslationWithMetaFromResults)
+                            .map(matchFromLanguageTronslationWithMeta)
+                            .collect(Collectors.toCollection(ArrayList::new));
 
                     var searchExecutedTemplate = generateSearchTemplate(mf, matches);
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, null, nonMatches, mf);
@@ -92,11 +108,10 @@ public class Main {
         scopes.put("matches", matches);
         scopes.put("non-matches", nonMatches);
 
-        try(Writer writer2 = new StringWriter()) {
+        try (Writer writer2 = new StringWriter()) {
             var queryResultsCompiledTemplate = mf.compile("query-results.mustache");
             return queryResultsCompiledTemplate.execute(writer2, scopes);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

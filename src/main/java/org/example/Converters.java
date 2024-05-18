@@ -8,18 +8,20 @@ import java.util.function.Function;
 public class Converters {
     public static final Function<Object[], LanguageTranslationWithMeta> languageTranslationWithMetaFromResults =
             (row -> new LanguageTranslationWithMeta(
-                    (String) row[0],
+                    (Integer) row[0],
                     (String) row[1],
                     (String) row[2],
                     (String) row[3],
                     (String) row[4],
                     (String) row[5],
                     (String) row[6],
-                    (Long) row[7]
+                    (String) row[7],
+                    (Long) row[8]
             ));
 
     public static final Function<LanguageTranslationWithMeta, Match> matchFromLanguageTronslationWithMeta =
             (lt -> new Match (
+                    lt.asset_id(),
                     lt.asset_url(),
                     lt.asset_name(),
                     lt.asset_description(),

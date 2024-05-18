@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public record Match(
+        Integer assetId,
         String href,
         String title,
         String description,
