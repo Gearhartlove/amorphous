@@ -6,7 +6,6 @@ import io.javalin.Javalin;
 import org.example.db.DBQueries;
 import org.example.db.DBUtils;
 import org.example.query.Match;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -20,6 +19,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import static org.example.Converters.languageTranslationWithMetaFromResults;
 import static org.example.Converters.matchFromLanguageTronslationWithMeta;
+import static org.example.db.DBQueries.initTables;
 
 public class Main {
     public static void main(String[] args) {
@@ -37,7 +37,7 @@ public class Main {
                         String foo = stream.collect(Collectors.joining("\n"));
                         ctx.html(foo);
                     } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 })
                 .get("/menu-hud/search", ctx -> {
@@ -60,10 +60,9 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    // TODO : no code duplication
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, searchLike, nonMatches, mf);
 
-                    ctx.html(queryResultsExecutedTemplate.toString());
+                    ctx.html(queryResultsExecutedTemplate);
                 })
                 .get("/menu-hud", ctx -> {
                     System.out.println(">> Serving Menu/HUD");
@@ -74,7 +73,6 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-//                    var nonMatches = new ArrayList<Match>();
                     var nonMatches = DBUtils.execute(
                                     DBQueries.menuHUDReverseSearch(
                                             matches.stream()
@@ -85,21 +83,21 @@ public class Main {
                             .map(matchFromLanguageTronslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-                    var searchExecutedTemplate = generateSearchTemplate(mf, matches);
+                    var searchExecutedTemplate = generateSearchTemplate(mf);
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, null, nonMatches, mf);
 
-                    ctx.html(searchExecutedTemplate.toString() + queryResultsExecutedTemplate.toString());
+                    ctx.html(searchExecutedTemplate + queryResultsExecutedTemplate);
                 })
                 .start(7070);
     }
 
-    private static Writer generateSearchTemplate(MustacheFactory mf, ArrayList<Match> matches) {
+    private static String generateSearchTemplate(MustacheFactory mf) {
         Writer writer1 = new StringWriter();
         var searchCompiledTemplate = mf.compile("search.mustache");
-        return searchCompiledTemplate.execute(writer1, Map.of());
+        return searchCompiledTemplate.execute(writer1, Map.of()).toString();
     }
 
-    private static Writer generateQueryResultsTemplate(ArrayList<Match> matches, String searchLike, ArrayList<Match> nonMatches, MustacheFactory mf) {
+    private static String generateQueryResultsTemplate(ArrayList<Match> matches, String searchLike, ArrayList<Match> nonMatches, MustacheFactory mf) {
         HashMap<String, Object> scopes = new HashMap<>();
         scopes.put("title", "Menu/HUD");
         scopes.put("records-found", matches.size());
@@ -110,85 +108,10 @@ public class Main {
 
         try (Writer writer2 = new StringWriter()) {
             var queryResultsCompiledTemplate = mf.compile("query-results.mustache");
-            return queryResultsCompiledTemplate.execute(writer2, scopes);
+            return queryResultsCompiledTemplate.execute(writer2, scopes).toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static void initTables() {
-        createLanguageTranslationTable();
-        createLanguageLookupTable();
-        createProjectTable();
-        createUserTable();
-        createAssetTable();
-    }
-
-    private static void createLanguageLookupTable() {
-        System.out.println(">> Creating Language Lookup Table");
-
-        DBUtils.execute("""
-                CREATE TABLE IF NOT EXISTS language_lookup (
-                    language_id PRIMARY KEY NOT NULL,
-                    language_name VARCHAR(50) NOT NULL,
-                    language_code VARCHAR(10) NOT NULL
-                )
-                """);
-
-        System.out.println(">> Created Language Lookup Table");
-    }
-
-    public static void createLanguageTranslationTable() {
-        System.out.println(">> Creating Language Translation Table");
-
-        DBUtils.execute("""
-                CREATE TABLE IF NOT EXISTS language_translation (
-                    asset_id INT,
-                    project_id INT,
-                    language_id INT,
-                    translation TEXT,
-                    updated DATETIME,
-                    who_updated INT,
-                    PRIMARY KEY (asset_id, project_id, language_id)
-                );""");
-
-        System.out.println(">> Created Language Translation Table");
-    }
-
-    public static void createAssetTable() {
-        System.out.println(">> Creating Asset Table");
-
-        DBUtils.execute("""
-                CREATE TABLE IF NOT EXISTS asset (
-                    asset_id INTEGER PRIMARY KEY,
-                    asset_name VARCHAR(50) NOT NULL,
-                    asset_url  VARCHAR(50) NOT NULL
-                );""");
-
-        System.out.println(">> Created Asset Table");
-    }
-
-    public static void createProjectTable() {
-        System.out.println(">> Creating Project Table");
-
-        DBUtils.execute("""
-                CREATE TABLE IF NOT EXISTS project (
-                    project_id INTEGER PRIMARY KEY,
-                    project_name VARCHAR(50) NOT NULL
-                );""");
-
-        System.out.println(">> Create Project Table");
-    }
-
-    public static void createUserTable() {
-        System.out.println(">> Creating User Table");
-
-        DBUtils.execute("""
-                CREATE TABLE IF NOT EXISTS user (
-                    user_id INTEGER PRIMARY KEY,
-                    user_name VARCHAR(50) NOT NULL
-                );""");
-
-        System.out.println(">> Created User Table");
-    }
 }

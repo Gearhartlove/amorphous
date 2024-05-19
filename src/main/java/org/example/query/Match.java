@@ -16,7 +16,6 @@ public record Match(
         var instant = Instant.ofEpochMilli(this.lastUpdatedTime);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withZone(ZoneId.systemDefault());
-        String humanReadableTime = formatter.format(instant);
-        return humanReadableTime;
+        return formatter.format(instant);
     }
 }

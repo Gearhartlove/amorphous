@@ -31,8 +31,6 @@ public class DBUtils {
         }
     }
 
-    public static void test(String... test) {}
-
     public static ArrayList<Object[]> execute(String query) {
         try (Connection connection = DriverManager.getConnection(url)) {
 
