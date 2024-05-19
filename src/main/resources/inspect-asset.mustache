@@ -1,0 +1,45 @@
+<h1>{{title}}</h1>
+<p>asset id: {{assetId}}</p>
+<p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
+
+<form>
+    <div class="dark row">
+        <div class="column centered">
+            <p>title</p>
+        </div>
+        <div class="column centered">
+            <label>
+                <input name="title" type="text" class="wide" value="{{title}}">
+            </label>
+        </div>
+    </div>
+    <div class="light row">
+        <div class="column centered">
+            <p>description</p>
+        </div>
+        <div class="column centered">
+            <label>
+                <textarea name="description" class="wide tall-textarea" placeholder="enter description of asset">{{description}}</textarea>
+            </label>
+        </div>
+    </div>
+    <div class="dark row">
+        <div class="column centered">
+            <p>url</p>
+        </div>
+        <div class="column centered">
+            <label>
+                <input name="url" type="text" class="wide" value="{{href}}">
+            </label>
+        </div>
+    </div>
+</form>
+
+<!--
+
+<br>
+<p class="clickable" style="display:inline">discard changes</p>
+
+<button>save game text</button>
+
+-->

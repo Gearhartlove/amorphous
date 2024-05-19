@@ -127,4 +127,28 @@ public class DBQueries {
         System.out.println(">> executing reverse query: " + "\n" + query);
         return query;
     }
+
+    public static String specificAssetSearch(Integer assetId) {
+        var query = """
+                -- select most recently updated asset
+                SELECT language_translation.asset_id,
+                       asset_name,
+                       asset_url,
+                       asset_description,
+                       language_name,
+                       project_name,
+                       translation,
+                       user_name,
+                       max(updated)
+                FROM language_translation
+                         JOIN main.asset a on language_translation.asset_id = a.asset_id
+                         JOIN main.project p on language_translation.project_id = p.project_id
+                         JOIN main.user u on language_translation.who_updated = u.user_id
+                         JOIN main.language_lookup ll on language_translation.language_id = ll.language_id
+                WHERE language_translation.asset_id = {{assetId}}
+                GROUP BY language_translation.asset_id, language_translation.project_id;
+                """.replace("{{assetId}}", assetId.toString());
+        System.out.println(">> executing specific asset search query: \n" + query);
+        return query;
+    }
 }

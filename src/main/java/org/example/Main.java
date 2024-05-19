@@ -6,6 +6,7 @@ import io.javalin.Javalin;
 import org.example.db.DBQueries;
 import org.example.db.DBUtils;
 import org.example.query.Match;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import static org.example.Converters.languageTranslationWithMetaFromResults;
 import static org.example.Converters.matchFromLanguageTronslationWithMeta;
 import static org.example.db.DBQueries.initTables;
@@ -87,6 +89,39 @@ public class Main {
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, null, nonMatches, mf);
 
                     ctx.html(searchExecutedTemplate + queryResultsExecutedTemplate);
+                })
+                .get("/inspect/asset/{assetId}", ctx -> {
+                    System.out.println(">> Responding to inspect asset");
+
+                    var assetId = Integer.parseInt(ctx.pathParam("assetId"));
+
+                    System.out.println(">> got assetID : " + assetId);
+
+                    var assets = DBUtils.execute(DBQueries.specificAssetSearch(assetId))
+                            .stream()
+                            .map(languageTranslationWithMetaFromResults)
+                            .map(matchFromLanguageTronslationWithMeta)
+                            .collect(Collectors.toCollection(ArrayList::new));
+
+                    if (assets.size() != 1) {
+                        throw new RuntimeException("Got multiple assets back for specific asset search. Id: " + assetId + ". Results: " + assets);
+                    }
+
+                    var asset = assets.getFirst();
+                    System.out.println(">> got asset : " + asset);
+
+                    Writer writer = new StringWriter();
+                    var inspectAssetCompiledTemplate = mf.compile("inspect-asset.mustache");
+                    var generatedHtml = inspectAssetCompiledTemplate.execute(
+                            writer,
+                            Map.of("title", asset.title(),
+                                    "assetId", asset.assetId(),
+                                    "lastUpdatedTimeFormatted", asset.lastUpdatedTimeFormatted(),
+                                    "lastUpdatedBy", asset.lastUpdatedBy(),
+                                    "description", asset.description(),
+                                    "href", asset.href()));
+
+                    ctx.html(generatedHtml.toString());
                 })
                 .start(7070);
     }

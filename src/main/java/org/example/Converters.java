@@ -25,7 +25,7 @@ public class Converters {
                     lt.asset_url(),
                     lt.asset_name(),
                     lt.asset_description(),
-                    lt.updated(), // KGF : TODO figure out date time
+                    lt.updated(),
                     lt.user_name()
             ));
 }

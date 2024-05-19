@@ -3,9 +3,11 @@
     <ul>
         {{#matches}}
             <li>
-                <a href="/inspect/asset/{{assetId}}">
-                    {{title}}
-                </a>
+                <p class="clickable" hx-target="#page-content" hx-get="/inspect/asset/{{assetId}}">
+                    <u>
+                       {{title}}
+                    </u>
+                </p>
                 <p>{{description}}</p>
                 <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
             </li>
