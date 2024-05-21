@@ -1,15 +1,13 @@
 package org.example;
 
 import com.fasterxml.jackson.core.StreamReadFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import io.javalin.Javalin;
-import io.javalin.config.JavalinConfig;
 import io.javalin.json.JavalinJackson;
-import io.javalin.json.JsonMapper;
 import org.example.db.DBQueries;
 import org.example.db.DBUtils;
+import org.example.db.LanguageTranslation;
 import org.example.query.Match;
 
 import java.io.IOException;
@@ -18,14 +16,14 @@ import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.example.Converters.languageTranslationWithMetaFromResults;
-import static org.example.Converters.matchFromLanguageTronslationWithMeta;
+import static org.example.Converters.*;
 import static org.example.db.DBQueries.initTables;
 
 public class Main {
@@ -58,7 +56,7 @@ public class Main {
                     var matches = DBUtils.execute(DBQueries.menuHUDSearch(searchLike))
                             .stream()
                             .map(languageTranslationWithMetaFromResults)
-                            .map(matchFromLanguageTronslationWithMeta)
+                            .map(matchFromLanguageTranslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
                     var nonMatches = DBUtils.execute(
@@ -68,7 +66,7 @@ public class Main {
                                                     .collect(Collectors.toCollection(ArrayList::new))))
                             .stream()
                             .map(languageTranslationWithMetaFromResults)
-                            .map(matchFromLanguageTronslationWithMeta)
+                            .map(matchFromLanguageTranslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
                     var queryResultsExecutedTemplate = generateQueryResultsTemplate(matches, searchLike, nonMatches, mf);
@@ -81,7 +79,7 @@ public class Main {
                     var matches = DBUtils.execute(DBQueries.LANGUAGE_TRANSLATIONS_WITH_META)
                             .stream()
                             .map(languageTranslationWithMetaFromResults)
-                            .map(matchFromLanguageTronslationWithMeta)
+                            .map(matchFromLanguageTranslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
                     var nonMatches = DBUtils.execute(
@@ -91,7 +89,7 @@ public class Main {
                                                     .collect(Collectors.toCollection(ArrayList::new))))
                             .stream()
                             .map(languageTranslationWithMetaFromResults)
-                            .map(matchFromLanguageTronslationWithMeta)
+                            .map(matchFromLanguageTranslationWithMeta)
                             .collect(Collectors.toCollection(ArrayList::new));
 
                     var searchExecutedTemplate = generateSearchTemplate(mf);
@@ -127,14 +125,106 @@ public class Main {
 
                     ctx.html(generatedHtml);
                 })
+                .get("/inspect/asset/translations/{assetId}", ctx -> {
+                    System.out.println(">> Serving asset's translations");
+                    var assetId = Integer.parseInt(ctx.pathParam("assetId"));
+                    System.out.println(">> got assetId " + assetId);
+                    var generatedHtml = generateAssetTranslationsHtml(assetId, mf);
+                    ctx.html(generatedHtml);
+                })
+                .post("/translations/mutate", ctx -> {
+                    System.out.println(">> Responding to mutate translation");
+                    var mutations = ctx.bodyAsClass(MutateTranslationRequest.class);
+                    System.out.println("mutations: " + mutations);
+
+                    ArrayList<LanguageTranslation> mutating = DBUtils.execute(DBQueries.getLanguageTranslationsForAsset(mutations.assetId()))
+                            .stream()
+                            .map(languageTranslationFromObjectArray)
+                            // get all translations that are different from original
+                            .filter(translationBeforeMutation -> {
+                                String translationToMutate;
+                                switch (translationBeforeMutation.languageName()) {
+                                    case "english" -> translationToMutate = mutations.englishTranslation();
+                                    case "german" -> translationToMutate = mutations.germanTranslation();
+                                    default ->
+                                            throw new RuntimeException("Unsupported language: " + translationBeforeMutation.languageName());
+                                }
+                                return !Objects.equals(translationToMutate, translationBeforeMutation.translation());
+                            })
+                            // change the translation
+                            .map(translationBeforeMutation -> {
+                                switch (translationBeforeMutation.languageName()) {
+                                    case "english" -> {
+                                        return LanguageTranslation.withNewTranslation(
+                                                translationBeforeMutation,
+                                                mutations.englishTranslation(),
+                                                Instant.now().toEpochMilli(),
+                                                translationBeforeMutation.userId()); // KGF : TODO : get user that is performing the updated
+                                    }
+                                    case "german" -> {
+                                        return LanguageTranslation.withNewTranslation(
+                                                translationBeforeMutation,
+                                                mutations.germanTranslation(),
+                                                Instant.now().toEpochMilli(),
+                                                translationBeforeMutation.userId()); // KGF : TODO : get user that is performing the updated
+                                    }
+                                    default ->
+                                            throw new RuntimeException("Unsupported language: " + translationBeforeMutation.languageName());
+                                }
+                            })
+                            // collect the new translations
+                            .collect(Collectors.toCollection(ArrayList::new));
+
+                    System.out.println("Translations to be updated: " + mutating);
+
+                    // execute updates
+                    if (!mutating.isEmpty()) {
+                        DBUtils.executeMultipleUpdatesTransactionally(DBQueries.generateUpdatedTranslationStatements(mutating));
+                    } else {
+                        System.out.println(">> Not updating, no mutations occured in translation.");
+                    }
+
+                    // return back the updated assets
+                    var generatedHtml = generateAssetTranslationsHtml(mutations.assetId(), mf);
+
+                    ctx.html(generatedHtml);
+                })
                 .start(7070);
+    }
+
+    private static String generateAssetTranslationsHtml(int assetId, MustacheFactory mf) {
+        var translations = DBUtils.execute(DBQueries.getLanguageTranslationsForAsset(assetId))
+                .stream()
+                .map(languageTranslationFromObjectArray)
+                .collect(Collectors.toCollection(ArrayList::new));
+        var assets = DBUtils.execute(DBQueries.specificAssetSearch(assetId))
+                .stream()
+                .map(languageTranslationWithMetaFromResults)
+                .map(matchFromLanguageTranslationWithMeta)
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (assets.size() != 1)
+            throw new RuntimeException("Found " + assets.size() + " assets with assetId " + assetId);
+        var asset = assets.getFirst();
+
+        var generatedHtml = generateAssetTranslationsTemplate(mf, translations, assetId, asset.title());
+        return generatedHtml;
+    }
+
+    private static String generateAssetTranslationsTemplate(MustacheFactory mf, ArrayList<LanguageTranslation> translations, Integer assetId, String assetName) {
+        Writer writer = new StringWriter();
+        var assetTranslationsTemplate = mf.compile("localization.mustache");
+        var scope = Map.of("assetId", assetId,
+                "translations", translations,
+                "assetName", assetName);
+        var executedTemplate = assetTranslationsTemplate.execute(writer, scope);
+        return executedTemplate.toString();
     }
 
     private static String getInspectAssetHtml(int assetId, MustacheFactory mf) {
         var assets = DBUtils.execute(DBQueries.specificAssetSearch(assetId))
                 .stream()
                 .map(languageTranslationWithMetaFromResults)
-                .map(matchFromLanguageTronslationWithMeta)
+                .map(matchFromLanguageTranslationWithMeta)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (assets.size() != 1) {

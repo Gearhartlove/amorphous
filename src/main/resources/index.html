@@ -3,21 +3,38 @@
 <head>
     <style>
         .clickable {
-            cursor:pointer;
-            color:blue;
+            cursor: pointer;
+            color: blue;
             text-underline: blue;
+        }
+
+        .header-row {
+            display: flex;
+            background-color: #aaa;
         }
 
         .row {
             display: flex;
         }
 
-        .dark {
-            background-color:#aaa
+        .row:nth-child(even) {
+            background-color: #bbb
         }
 
-        .light{
-            background-color:#bbb
+        .row:nth-child(odd) {
+            background-color: #ccc
+        }
+
+        .dark {
+            background-color: #aaa
+        }
+
+        .light {
+            background-color: #bbb
+        }
+
+        .light2 {
+            background-color: #ccc
         }
 
         .column {
@@ -25,8 +42,32 @@
             padding: 10px;
         }
 
+        .padding10 {
+            padding: 10px;
+        }
+
+        .column10 {
+            flex: 10%;
+        }
+
+        .column20 {
+            flex: 20%;
+        }
+
+        .column50 {
+            flex: 50%;
+        }
+
+        .column60 {
+            flex: 60%;
+        }
+
+        .column70 {
+            flex: 70%;
+        }
+
         .centered {
-            margin:auto;
+            margin: auto;
         }
 
         .centered-page-content {
@@ -47,11 +88,12 @@
     <title>Amorphous Index</title>
 
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 </head>
 <body>
 <p hx-get="/menu-hud"
    hx-target="#page-content"
-   class="clickable"><u>Menu/HUD</u></p>
+   class="clickable"><b><u>Menu/HUD</u></b></p>
 <div id="page-content">
     <p>select asset type above</p>
 </div>

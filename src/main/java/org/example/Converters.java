@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.db.LanguageTranslation;
 import org.example.db.LanguageTranslationWithMeta;
 import org.example.query.Match;
 
@@ -19,7 +20,7 @@ public class Converters {
                     (Long) row[8]
             ));
 
-    public static final Function<LanguageTranslationWithMeta, Match> matchFromLanguageTronslationWithMeta =
+    public static final Function<LanguageTranslationWithMeta, Match> matchFromLanguageTranslationWithMeta =
             (lt -> new Match (
                     lt.asset_id(),
                     lt.asset_url(),
@@ -27,5 +28,18 @@ public class Converters {
                     lt.asset_description(),
                     lt.updated(),
                     lt.user_name()
+            ));
+
+    public static final Function<Object[], LanguageTranslation> languageTranslationFromObjectArray =
+            (objects -> new LanguageTranslation(
+                    (Integer) objects[0], // asset id
+                    (String) objects[1], // language name
+                    (String) objects[2], // translation
+                    (Long) objects[3], // updated
+                    (String) objects[4], // asset name
+                    (String) objects[5], // updated by
+                    (Integer) objects[6], // project id
+                    (Integer) objects[7], // language id
+                    (Integer) objects[8] // user id
             ));
 }

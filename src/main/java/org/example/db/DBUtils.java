@@ -13,7 +13,7 @@ public class DBUtils {
         DBUtils.url = url;
     }
 
-    public static void executeMultipleUpdatesTransactionally(String... updates) {
+    public static void executeMultipleUpdatesTransactionally(ArrayList<String> updates) {
 
         try (Connection connection = DriverManager.getConnection(url)) {
 

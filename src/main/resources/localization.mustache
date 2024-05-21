@@ -1,0 +1,58 @@
+<div id="page-content">
+    <p class="clickable"
+       style="display:inline;padding-right:10px;"
+       hx-get="/inspect/asset/{{assetId}}"
+       hx-target="#page-content"><u>Asset</u></p>
+    <p class="clickable"
+       style="display:inline;"
+       hx-get="/inspect/asset/translations/{{assetId}}"
+       hx-target="#page-content"><b><u>Translations</u></b></p>
+    <h1>{{assetName}}</h1>
+    <div class="header-row">
+        <div class="column10 padding10">
+            <h4>Language</h4>
+        </div>
+        <div class="column50 padding10">
+            <h4>Translation</h4>
+        </div>
+        <div class="column20 padding10">
+            <h4>Updated</h4>
+        </div>
+        <div class="column20 padding10">
+            <h4>User</h4>
+        </div>
+    </div>
+    <form hx-post="/translations/mutate"
+          hx-ext="json-enc"
+          hx-target="#page-content">
+        <!-- hidden fields -->
+        <input name="assetId" value="{{assetId}}" hidden>
+
+        {{#translations}}
+            <div class="row">
+                <div class="column10 padding10">
+                    <p>{{languageName}}</p>
+                </div>
+                <div class="column50 padding10 centered">
+                    <input name="{{languageName}}Translation" class="wide" type="text" value="{{translation}}">
+                </div>
+                <div class="column20 padding10">
+                    <p>{{lastUpdatedTimeFormatted}}</p>
+                </div>
+                <div class="column20 padding10">
+                    <p>{{updatedBy}}</p>
+                </div>
+            </div>
+        {{/translations}}
+        <label>
+            Mark up-to-date
+            <input type="checkbox" {{checked}}>
+        </label>
+        <br>
+        <br>
+
+        <p class="clickable" style="display:inline" hx-get="/asset/translations/{{assetId}}" hx-target="#page-content">discard changes</p>
+
+        <button type="submit">save text translations</button>
+    </form>
+</div>

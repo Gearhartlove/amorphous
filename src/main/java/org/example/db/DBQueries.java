@@ -1,5 +1,6 @@
 package org.example.db;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -165,5 +166,49 @@ public class DBQueries {
                 .replace("{{assetId}}", assetId.toString());
         System.out.println(">> executing update asset query: \n" + query);
         return query;
+    }
+
+    public static String getLanguageTranslationsForAsset(Integer assetId) {
+        var query = """
+                SELECT language_translation.asset_id,
+                       ll.language_name,
+                       language_translation.translation,
+                       language_translation.updated,
+                       asset.asset_name,
+                       user.user_name AS updatedBy,
+                       language_translation.project_id,
+                       language_translation.language_id,
+                       user.user_id
+                FROM language_translation
+                JOIN language_lookup ll ON language_translation.language_id = ll.language_id
+                JOIN user ON user.user_id = language_translation.who_updated
+                JOIN asset ON asset.asset_id = language_translation.asset_id
+                WHERE language_translation.asset_id = {{assetId}}
+                ORDER BY language_translation.language_id;
+                """.replace("{{assetId}}", assetId.toString());
+        System.out.println(">> executing get language translations for asset query: \n" + query);
+        return query;
+    }
+
+    public static ArrayList<String> generateUpdatedTranslationStatements(ArrayList<LanguageTranslation> languageTranslations) {
+        var updateStatements = languageTranslations
+                .stream()
+                .map(translation -> """
+                        UPDATE language_translation
+                        SET translation = '{{translation}}',
+                            updated     = {{updated}},
+                            who_updated = {{updatedBy}}
+                        WHERE asset_id = {{assetId}}
+                          AND project_id = {{projectId}}
+                          AND language_id = {{languageId}};"""
+                        .replace("{{translation}}", translation.translation())
+                        .replace("{{updated}}", translation.updated().toString())
+                        .replace("{{updatedBy}}", translation.userId().toString())
+                        .replace("{{assetId}}", translation.assetId().toString())
+                        .replace("{{projectId}}", translation.projectId().toString())
+                        .replace("{{languageId}}", translation.languageId().toString()))
+                .collect(Collectors.toCollection(ArrayList::new)); // KGF : what am I joining by?
+        System.out.println(">> executing update translations statement: \n" + updateStatements);
+        return updateStatements;
     }
 }

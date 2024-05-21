@@ -2,6 +2,10 @@
    style="display:inline;padding-right:10px;"
    hx-get="/inspect/asset/{{assetId}}"
    hx-target="#page-content"><b><u>Asset</u></b></p>
+<p class="clickable"
+   style="display:inline;"
+   hx-get="/inspect/asset/translations/{{assetId}}"
+   hx-target="#page-content"><u>Translations</u></p>
 <h1>{{title}}</h1>
 <p>asset id: {{assetId}}</p>
 <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
