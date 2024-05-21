@@ -1,8 +1,13 @@
 package org.example;
 
+import com.fasterxml.jackson.core.StreamReadFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import io.javalin.Javalin;
+import io.javalin.config.JavalinConfig;
+import io.javalin.json.JavalinJackson;
+import io.javalin.json.JsonMapper;
 import org.example.db.DBQueries;
 import org.example.db.DBUtils;
 import org.example.query.Match;
@@ -31,7 +36,11 @@ public class Main {
 
         System.out.println(">> Serving Server");
 
-        var app = Javalin.create(/*config*/)
+        var app = Javalin.create(config -> {
+                    config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
+                        mapper.enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION.mappedFeature());
+                    }));
+                })
                 .get("/", ctx -> {
                     System.out.println(">> Serving Index");
 
@@ -97,33 +106,55 @@ public class Main {
 
                     System.out.println(">> got assetID : " + assetId);
 
-                    var assets = DBUtils.execute(DBQueries.specificAssetSearch(assetId))
-                            .stream()
-                            .map(languageTranslationWithMetaFromResults)
-                            .map(matchFromLanguageTronslationWithMeta)
-                            .collect(Collectors.toCollection(ArrayList::new));
+                    var generatedHtml = getInspectAssetHtml(assetId, mf);
 
-                    if (assets.size() != 1) {
-                        throw new RuntimeException("Got multiple assets back for specific asset search. Id: " + assetId + ". Results: " + assets);
-                    }
+                    ctx.html(generatedHtml);
+                })
+                .get("/assets/mutate", ctx -> {
+                    System.out.println(">> Responding to mutate asset");
 
-                    var asset = assets.getFirst();
-                    System.out.println(">> got asset : " + asset);
+                    var title = ctx.queryParam("title");
+                    var url = ctx.queryParam("url");
+                    var description = ctx.queryParam("description");
+                    var assetId = Integer.parseInt(ctx.queryParam("assetId"));
 
-                    Writer writer = new StringWriter();
-                    var inspectAssetCompiledTemplate = mf.compile("inspect-asset.mustache");
-                    var generatedHtml = inspectAssetCompiledTemplate.execute(
-                            writer,
-                            Map.of("title", asset.title(),
-                                    "assetId", asset.assetId(),
-                                    "lastUpdatedTimeFormatted", asset.lastUpdatedTimeFormatted(),
-                                    "lastUpdatedBy", asset.lastUpdatedBy(),
-                                    "description", asset.description(),
-                                    "href", asset.href()));
+                    // update asset
+                    System.out.println(">> updating asset");
+                    DBUtils.execute(DBQueries.updateAsset(title, url, description, assetId));
+                    // fetch the newly updated asset to display
+                    System.out.println(">> asset updated, displaying newly updated asset");
+                    var generatedHtml = getInspectAssetHtml(assetId, mf);
 
-                    ctx.html(generatedHtml.toString());
+                    ctx.html(generatedHtml);
                 })
                 .start(7070);
+    }
+
+    private static String getInspectAssetHtml(int assetId, MustacheFactory mf) {
+        var assets = DBUtils.execute(DBQueries.specificAssetSearch(assetId))
+                .stream()
+                .map(languageTranslationWithMetaFromResults)
+                .map(matchFromLanguageTronslationWithMeta)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        if (assets.size() != 1) {
+            throw new RuntimeException("Got multiple assets back for specific asset search. Id: " + assetId + ". Results: " + assets);
+        }
+
+        var asset = assets.getFirst();
+        System.out.println(">> got asset : " + asset);
+
+        Writer writer = new StringWriter();
+        var inspectAssetCompiledTemplate = mf.compile("inspect-asset.mustache");
+        var generatedHtml = inspectAssetCompiledTemplate.execute(
+                writer,
+                Map.of("title", asset.title(),
+                        "assetId", asset.assetId(),
+                        "lastUpdatedTimeFormatted", asset.lastUpdatedTimeFormatted(),
+                        "lastUpdatedBy", asset.lastUpdatedBy(),
+                        "description", asset.description(),
+                        "href", asset.href()));
+        return generatedHtml.toString();
     }
 
     private static String generateSearchTemplate(MustacheFactory mf) {

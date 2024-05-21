@@ -2,7 +2,11 @@
 <p>asset id: {{assetId}}</p>
 <p>last updated @ {{lastUpdatedTimeFormatted}} by {{lastUpdatedBy}}</p>
 
-<form>
+<form hx-get="assets/mutate" hx-target="#page-content">
+    <label>
+        <input name="assetId" type="text" hidden="hidden" value="{{assetId}}">
+    </label>
+
     <div class="dark row">
         <div class="column centered">
             <p>title</p>
@@ -33,13 +37,9 @@
             </label>
         </div>
     </div>
+
+    <br>
+    <p class="clickable" style="display:inline" hx-get="/inspect/asset/{{assetId}}" hx-target="#page-content">discard changes</p>
+
+    <button type="submit">save game text</button>
 </form>
-
-<!--
-
-<br>
-<p class="clickable" style="display:inline">discard changes</p>
-
-<button>save game text</button>
-
--->

@@ -151,4 +151,19 @@ public class DBQueries {
         System.out.println(">> executing specific asset search query: \n" + query);
         return query;
     }
+
+    public static String updateAsset(String title, String url, String description, Integer assetId) {
+        String query = """
+                UPDATE asset
+                SET asset_name = '{{title}}',
+                    asset_url = '{{url}}',
+                    asset_description = '{{description}}'
+                WHERE asset_id = {{assetId}}"""
+                .replace("{{title}}", title)
+                .replace("{{url}}", url)
+                .replace("{{description}}", description)
+                .replace("{{assetId}}", assetId.toString());
+        System.out.println(">> executing update asset query: \n" + query);
+        return query;
+    }
 }
