@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .clickable {
+            cursor: pointer;
+            color: blue;
+            text-underline: blue;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .dark {
+            background-color: #aaa
+        }
+
+        .light {
+            background-color: #bbb
+        }
+
+        .light2 {
+            background-color: #ccc
+        }
+
+        .column {
+            flex: 50%;
+            padding: 10px;
+        }
+
+        .padding10 {
+            padding: 10px;
+        }
+
+        .column10 {
+            flex: 10%;
+        }
+
+        .column20 {
+            flex: 20%;
+        }
+
+        .column60 {
+            flex: 60%;
+        }
+
+        .column70 {
+            flex: 70%;
+        }
+
+        .centered {
+            margin: auto;
+        }
+
+        .centered-page-content {
+            margin: auto;
+            width: 50%;
+            padding: 10px;
+        }
+
+        .wide {
+            width: 100%;
+        }
+
+        .tall-textarea {
+            height: 7em;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>Amorphous Index</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+<p hx-get="/menu-hud"
+   hx-target="#page-content"
+   class="clickable"><u>Menu/HUD</u></p>
+<div id="page-content">
+    <h1>MAIN_MENU</h1>
+    <div class="dark row">
+        <div class="column10 padding10">
+            <h4>Language</h4>
+        </div>
+        <div class="column70 padding10">
+            <h4>Translation</h4>
+        </div>
+        <div class="column20 padding10">
+            <h4>Updated</h4>
+        </div>
+    </div>
+    <form hx-get="translations/mutate" hx-target="#page-content">
+        <div class="light row">
+            <div class="column10 padding10">
+                <p>english</p>
+            </div>
+            <div class="column70 padding10 centered">
+                <input class="wide" type="text" value="Welcome to Tenebrae!">
+            </div>
+            <div class="column20 padding10">
+                <p>20:53 May 20 2024</p>
+            </div>
+        </div>
+        <div class="light2 row">
+            <div class="column10 padding10">
+                <p>german</p>
+            </div>
+            <div class="column70 padding10 centered">
+                <input class="wide" type="text" value="Willkommen zu Tenebrae!">
+            </div>
+            <div class="column20 padding10">
+                <p>21:01 May 20 2024</p>
+            </div>
+        </div>
+        <label>
+            Mark up-to-date
+            <input type="checkbox">
+        </label>
+        <br>
+        <br>
+
+        <p class="clickable" style="display:inline" hx-get="/inspect/asset/{{assetId}}" hx-target="#page-content">discard changes</p>
+
+        <button type="submit">save text translations</button>
+    </form>
+</div>
+</body>
+</html>
