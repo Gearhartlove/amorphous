@@ -16,7 +16,17 @@ I needed a system that fulfilled the following requirements :
 
 Here is a long form video of me doing all of those things. On the right is my bevy video game and the left has my translation web application. 
 
-![Demo Video](readme-assets/demo2.webm)
+## search for an asset 
+![Search for an asset](readme-assets/search_asset.png)
+
+## edit asset metadata
+![Edit asset metadata](readme-assets/editing_asset.png)
+
+## asset translation page
+![Edit asset metadata](readme-assets/translation_page.png)
+
+## hot reload translation change
+![Hot reload translation change](readme-assets/edit_translations.png)
 
 ## tech stack highlights
 - **backend**
