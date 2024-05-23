@@ -1,19 +1,17 @@
 use bevy::prelude::*;
 use rusqlite::{Connection, Result as SQLiteError};
+use std::{thread, time::Duration};
 
 fn main() -> SQLiteError<()> {
-    println!("Sup!");
-
     let path = "../sqlite/amorphous";
-    let connection = Connection::open(path)?;
 
-    let mut statement = connection.prepare("SELECT * FROM language_translation")?;
-    let person_iter = statement.query_map([], |row| {
-        println!("{:?}", row);
-        Ok(())
-    })?;
-
-    for person in person_iter {}
+    thread::spawn(move || {
+        let mut connection = Connection::open(path).unwrap();
+        loop {
+            let _ = poll(&mut connection);
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
 
     App::new()
         .add_plugins(DefaultPlugins)
@@ -21,6 +19,22 @@ fn main() -> SQLiteError<()> {
         .add_systems(Update, bevy::window::close_on_esc)
         .add_systems(Update, text_color_system)
         .run();
+
+    Ok(())
+}
+
+fn poll(connection: &mut Connection) -> SQLiteError<()> {
+    let mut statement = connection.prepare("SELECT * FROM user")?;
+    let person_iter = statement.query_map([], |row| {
+        println!("------------------------------------");
+        println!("{:?}", std::time::SystemTime::now());
+        println!("{:?}", row);
+        Ok(())
+    })?;
+
+    for _ in person_iter {
+        // print out my rows because the above iterator is lazy of course ;)
+    }
 
     Ok(())
 }
